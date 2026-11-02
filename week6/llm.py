@@ -145,6 +145,10 @@ class LLM:
         self.last_fallback = None    # 回退原因（None 表示没回退）
 
     def ask(self, prompt, prefer="local", **kw):
+        if prefer not in ("local", "api"):
+            # 拼错 prefer 时，旧写法会静默走 else 分支（= "api"），
+            # 于是"想用本地"的人其实把数据发去了云端——这种错必须当场炸掉。
+            raise ValueError("prefer 只能是 'local' 或 'api'，收到的是 %r" % (prefer,))
         if prefer == "local":
             first, second, tag = self.local, self.api, "本地失败，自动切换云端"
         else:
