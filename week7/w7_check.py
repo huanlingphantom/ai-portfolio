@@ -38,24 +38,36 @@ def main():
     for i, (q, gold) in enumerate(CASES, 1):
         row = {"no": i, "question": q, "gold": gold}
 
+        # 三列裸答：小模型（本地 1.5b）／云端大模型（deepseek-chat）
         t = time.time()
-        row["bare"] = LLM().ask(q, prefer="local", **KW)   # 不带任何资料
+        row["bare"] = LLM().ask(q, prefer="local", **KW)
         row["bare_s"] = round(time.time() - t, 1)
 
         t = time.time()
-        row["rag"] = rag_qa.rag_qa(q, prefer="local", k=3)  # 检索 → 拼提示词 → llm.ask
+        row["bare_api"] = LLM().ask(q, prefer="api", **KW)
+        row["bare_api_s"] = round(time.time() - t, 1)
+
+        # 两列 RAG：同一批资料，分别交给本地与云端生成
+        t = time.time()
+        row["rag"] = rag_qa.rag_qa(q, prefer="local", k=3)
         row["rag_s"] = round(time.time() - t, 1)
 
+        t = time.time()
+        row["rag_api"] = rag_qa.rag_qa(q, prefer="api", k=3)
+        row["rag_api_s"] = round(time.time() - t, 1)
+
         row["chunks"] = [
-            {"dist": round(float(s), 4), "text": d.page_content.strip()}
+            {"dist": round(float(s), 4), "head": rag_qa._head(d)}
             for d, s in rag_qa.retrieve_with_score(q, k=3)
         ]
         row["gold_in_bare"] = gold in nums(row["bare"])
+        row["gold_in_bare_api"] = gold in nums(row["bare_api"])
         row["gold_in_rag"] = gold in nums(row["rag"])
+        row["gold_in_rag_api"] = gold in nums(row["rag_api"])
         rows.append(row)
-        print("[%d] %s | gold=%s | 裸答命中=%s  RAG命中=%s  (%.1fs/%.1fs)"
-              % (i, q, gold, row["gold_in_bare"], row["gold_in_rag"],
-                 row["bare_s"], row["rag_s"]), flush=True)
+        print("[%d] %s | gold=%s | 裸答 %s/%s | RAG %s/%s"
+              % (i, q, gold, row["gold_in_bare"], row["gold_in_bare_api"],
+                 row["gold_in_rag"], row["gold_in_rag_api"]), flush=True)
 
     with open(OUT, "w", encoding="utf-8") as f:
         json.dump(rows, f, ensure_ascii=False, indent=2)

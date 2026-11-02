@@ -81,21 +81,37 @@ def get_retriever(k=3, rebuild=False):
     return _retrievers[k]
 
 
+def _head(doc):
+    """分块抬头就是出处（建库时补的【一、语言量化指标总表…】）。"""
+    first = doc.page_content.splitlines()[0]
+    return first.strip("【】") if first.startswith("【") else "（未标章节）"
+
+
+def retrieve_chunks(question, k=3, rebuild=False):
+    """检索并带上出处：返回 [(序号, 出处, 正文, 距离)]。"""
+    vs = get_vectorstore(rebuild=rebuild)
+    out = []
+    for i, (doc, score) in enumerate(vs.similarity_search_with_score(question, k=k), 1):
+        body = doc.page_content.split("\n", 1)[1] if "\n" in doc.page_content else ""
+        out.append((i, _head(doc), body.strip(), float(score)))
+    return out
+
+
 def retrieve(question, k=3, rebuild=False):
-    """把问题向量化，取最相似的 top-k 段拼成上下文。"""
-    return "\n".join(d.page_content for d in
-                     get_retriever(k=k, rebuild=rebuild).invoke(question))
+    """把 top-k 段编号后拼成上下文——编号是为了让模型能回标出处。"""
+    return "\n\n".join("[%d]（出处：%s）\n%s" % (i, head, body)
+                        for i, head, body, _ in retrieve_chunks(question, k, rebuild))
 
 
 def retrieve_with_score(question, k=3, rebuild=False):
-    """调参/取证用：返回 [(文档, 相似度距离)]。
-    Chroma 的距离是「越小越像」，nomic-embed-text 用余弦距离，0 = 完全相同。"""
+    """调参/取证用：[(文档, 距离)]。距离越小越像（余弦距离）。"""
     vs = get_vectorstore(rebuild=rebuild)
     return vs.similarity_search_with_score(question, k=k)
 
 
 def build_prompt(question, ctx):
-    return ("根据以下资料回答问题，资料中没有的内容就如实说“资料中未提及”：\n"
+    return ("根据以下资料回答问题，资料中没有的内容就如实说“资料中未提及”。\n"
+            "回答完在末尾用一行写“出处：[序号]”，序号对应资料里的 [1][2][3]。\n"
             "%s\n\n问题：%s" % (ctx, question))
 
 
@@ -121,12 +137,13 @@ if __name__ == "__main__":
     q = " ".join(args.question) or "HSK4 需要掌握多少词汇？"
 
     if args.show:
-        for i, (doc, score) in enumerate(
-                retrieve_with_score(q, args.k, rebuild=args.rebuild), 1):
-            print("--- 片段 %d｜距离 %.4f ---" % (i, score))
-            print(doc.page_content.strip()[:220])
+        for i, head, body, score in retrieve_chunks(q, args.k, args.rebuild):
+            print("--- [%d] %s｜距离 %.4f ---" % (i, head, score))
+            print(body[:220])
         sys.exit(0)
 
-    ctx = retrieve(q, k=args.k, rebuild=args.rebuild)
-    print("【检索片段】\n", ctx[:300], "\n---")
-    print(rag_qa(q, prefer=args.prefer, k=args.k))
+    ans = rag_qa(q, prefer=args.prefer, k=args.k, rebuild=args.rebuild)
+    print(ans)
+    print("\n--- 引用来源（模型标的 [n] 对应这里）---")
+    for i, head, body, score in retrieve_chunks(q, args.k):
+        print("[%d] %s（距离 %.4f）" % (i, head, score))
