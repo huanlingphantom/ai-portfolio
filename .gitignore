@@ -1,0 +1,12 @@
+# 密钥与环境（一票否决项）
+.env
+.env.*
+!.env.example
+
+# 运行产物 / 缓存
+__pycache__/
+*.pyc
+.venv/
+venv/
+chroma_db/
+.DS_Store

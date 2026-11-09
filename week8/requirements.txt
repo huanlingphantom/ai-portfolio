@@ -1,0 +1,18 @@
+# 学科智能问答助手 v1.0 —— 本项目所需第三方依赖
+# 安装：pip install -r requirements.txt
+# 说明：只列 W7–W8 组装 v1.0 真正用到的包；W9 之后（mcp、streamlit）不在此列。
+
+# W7 知识库：加载 / 分块 / 向量库 / 本地嵌入
+langchain-community>=0.3
+langchain-chroma>=0.2
+langchain-ollama>=0.2
+langchain-text-splitters>=0.3
+chromadb>=0.5
+
+# W4–W6 双引擎：云端调用 + 读 .env
+openai>=1.0
+python-dotenv>=1.0
+
+# 本地模型走 Ollama HTTP 接口，openai 兼容层之外不需要额外 SDK；
+# 如需用 ollama 官方 Python 客户端，取消下面一行注释
+# ollama>=0.4
