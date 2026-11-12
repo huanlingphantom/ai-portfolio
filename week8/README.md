@@ -11,6 +11,8 @@
 
 ## 怎么装
 
+> 本节四条命令**都在 `week8` 目录下执行**（`cd week8` 之后），依赖、模型、密钥、建库一次性配好；在仓库根目录直接执行会找不到 `requirements.txt`。
+
 1. 装依赖（建议 Python 3.10+，先建虚拟环境）：
 
    ```bash
@@ -20,9 +22,11 @@
 2. 拉本地模型（两个都要，缺 `nomic-embed-text` 会在建库时失败）：
 
    ```bash
-   ollama pull qwen2.5:0.5b
-   ollama pull nomic-embed-text
+   ollama pull qwen2.5:1.5b          # 演示用：能读懂四列数字表
+   ollama pull nomic-embed-text      # 嵌入模型，建库必需
    ```
+
+   机器吃不消就把第一行换成 `ollama pull qwen2.5:0.5b`（397 MB，能跑，但数字表题常答「资料中未提及」，见「已知问题」第 5 条）。
 
    确认 Ollama 已在后台运行：`ollama list` 能列出上面两个模型即正常。
 
@@ -45,16 +49,23 @@ cd week8
 python assistant_v1.py
 ```
 
-预期输出形如：
+预期输出形如（以下是本机 `qwen2.5:1.5b` 的一次真实输出，模型未固定温度，措辞与数字表述会有波动）：
 
 ```
 Q: 把字句的教学难点有哪些
-A: ...（回答正文）...
+A: 资料中未提及字句教学的难点。          ← 语料是词汇量指标，没有语法教学法，拒答是对的
 ----------------------------------------
 Q: HSK4 词汇量要求是多少
-A: ...1000 个（累计 3245）... 出处：[2]
+A: HSK4 的词汇量要求是 3245 个。
+
+出处：[3]                              ← 累计 3245；有时也会写成「1000/3245」
+----------------------------------------
+Q: 《愚公移山》可以设计什么课堂活动
+A: 资料中没有提到《愚公移山》这篇课文，因此无法提供相应的课堂活动设计。
 ----------------------------------------
 ```
+
+本地小模型**写不写「出处：[n]」不稳定**（复跑时有时写、有时只给结论），要稳定出处标注用 `prefer="api"`。四种组合的完整输出见 `answer_log.md`。
 
 自己提问 / 换模式：
 
@@ -68,9 +79,9 @@ print(answer("HSK4 词汇量要求是多少", use_rag=False, prefer="api"))    #
 
 ## 已知问题
 
-- **未启动 Ollama 时本地模式会报错**：`ConnectionError: Failed to connect to Ollama`。先 `ollama serve`/打开 Ollama 应用，或改用 `prefer="api"`。
-- **没 pull `nomic-embed-text` 时建库失败**：报 `model "nomic-embed-text" not found`。执行 `ollama pull nomic-embed-text` 后重试。
-- **小模型会无视格式指令**：`qwen2.5:0.5b` 常常不写「出处：[n]」，也可能把 7 列数字表读错；要稳定出处标注请用 `prefer="api"`（实测 deepseek-chat 5/5 都写）。
-- **知识库只覆盖一份语料**：`data/等级标准节选.txt`（GF 0025—2021 的一至六级指标 + HSK4 词汇量说明）。问语法教学法、课文活动设计这类语料外的问题时，检索到的片段帮助有限，`use_rag=True` 的回答质量不一定优于纯对话。
-- **0.5b 可能答不出表格题**：`qwen2.5:0.5b` 读不懂「音节/汉字/词汇/语法」四列数字表，问「HSK4 词汇量」时常回「资料中未提及」（实测）；换 `qwen2.5:1.5b` 或 `prefer="api"` 即可答出「新增 1000 / 累计 3245」。在 `.env` 里改 `LOCAL_MODEL=qwen2.5:1.5b` 即可，无需改代码。
-- **首次运行慢**：要建向量库并加载 embedding 模型，之后才快；首次 10–20 秒属正常。
+1. **未启动 Ollama 时本地模式会报错**：`ConnectionError: Failed to connect to Ollama`。先 `ollama serve`/打开 Ollama 应用，或改用 `prefer="api"`。
+2. **没 pull `nomic-embed-text` 时建库失败**：报 `model "nomic-embed-text" not found`。执行 `ollama pull nomic-embed-text` 后重试。
+3. **本地小模型写「出处：[n]」不稳定**：`qwen2.5:0.5b` 基本不写，`qwen2.5:1.5b` 时写时不写（12 次批量实测 0/3，复跑时又写了 1 次）；要稳定出处请用 `prefer="api"`（deepseek-chat 3/3 都写）。
+4. **知识库只覆盖一份语料**：`data/等级标准节选.txt`（GF 0025—2021 的一至六级指标 + HSK4 词汇量说明）。问语法教学法、课文活动设计这类语料外的问题时，检索到的片段帮助有限，`use_rag=True` 的回答质量不一定优于纯对话。
+5. **0.5b 可能答不出表格题**：`qwen2.5:0.5b` 读不懂「音节/汉字/词汇/语法」四列数字表，问「HSK4 词汇量」时常回「资料中未提及」（实测）；换 `qwen2.5:1.5b` 或 `prefer="api"` 即可答出「新增 1000 / 累计 3245」。在 `.env` 里改 `LOCAL_MODEL=qwen2.5:1.5b` 即可，无需改代码。
+6. **首次运行慢**：要建向量库并加载 embedding 模型，之后才快；首次 10–20 秒属正常。

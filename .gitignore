@@ -10,3 +10,8 @@ __pycache__/
 venv/
 chroma_db/
 .DS_Store
+
+# W3 运行产物：仓库根目录生成的那份不入库（week3/ 下的留档版本除外）
+/练习.txt
+/词组_按词性.txt
+/词汇表_OCR缓存.csv
