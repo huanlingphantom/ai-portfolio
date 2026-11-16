@@ -16,7 +16,7 @@
 | `week6/` | W6 | `llm.py` 双引擎封装（`prefer` 切换、双向回退）+ 边界测试记录 |
 | `week7/` | W7 | RAG 知识库问答：加载→分块→向量化→检索→生成；幻觉对照表、离场验收单 |
 | **`week8/`** | **W8** | **阶段项目一 v1.0：`assistant_v1.py`（粘合层 + `use_rag` 开关）、四段式 README、三问十二次实测、5 行映射表、互评表** |
-| `week9/` | W9 | 手写工具调用循环（`tool_agent.py`：3 个工具 + 四道防线）、4 条调用轨迹、离场验收单；加分选做：smolagents 版 `smolagents_demo.py` + 5 行映射表与反思 |
+| `week9/` | W9 | 手写工具调用循环（`tool_agent.py`：4 个工具 + 四道防线）、5 条调用轨迹、离场验收单、课后作业（失败案例会诊 + 课文难度评估）；加分选做：smolagents 版 `smolagents_demo.py` + 5 行映射表与反思 |
 | `data/` | — | 学科语料：等级标准节选（词汇/汉字/语法量化指标）、生词表、课文《愚公移山》 |
 | `weekpath.py` | — | 跨周模块导入 / 数据路径 / `.env` 加载的统一入口 |
 | `.env.example` | — | 密钥与本地模型的占位模板（复制成 `.env` 使用，`.env` 不入库） |
@@ -35,6 +35,7 @@ python assistant_v1.py                  # 三问三答演示（默认本地引�
 
 # W9：手写工具调用循环（含 API 调用，需根目录 .env）
 python week9/tool_agent.py "帮我算一下 35*24 等于多少"
+python week9/tool_agent.py "这段课文对 HSK4 的学生难不难？北山有位叫愚公的老人，快九十岁了……"
 python week9/trace_demo.py             # 重跑 4 个案例，生成 轨迹记录.json
 
 # W9 加分：smolagents 版（先 pip install "smolagents==1.26.0"）
