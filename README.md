@@ -16,6 +16,7 @@
 | `week6/` | W6 | `llm.py` 双引擎封装（`prefer` 切换、双向回退）+ 边界测试记录 |
 | `week7/` | W7 | RAG 知识库问答：加载→分块→向量化→检索→生成；幻觉对照表、离场验收单 |
 | **`week8/`** | **W8** | **阶段项目一 v1.0：`assistant_v1.py`（粘合层 + `use_rag` 开关）、四段式 README、三问十二次实测、5 行映射表、互评表** |
+| `week9/` | W9 | 手写工具调用循环（`tool_agent.py`：3 个工具 + 四道防线）、4 条调用轨迹、离场验收单；加分选做：smolagents 版 `smolagents_demo.py` + 5 行映射表与反思 |
 | `data/` | — | 学科语料：等级标准节选（词汇/汉字/语法量化指标）、生词表、课文《愚公移山》 |
 | `weekpath.py` | — | 跨周模块导入 / 数据路径 / `.env` 加载的统一入口 |
 | `.env.example` | — | 密钥与本地模型的占位模板（复制成 `.env` 使用，`.env` 不入库） |
@@ -31,6 +32,13 @@ pip install -r week8/requirements.txt
 # W8：学科智能问答助手 v1.0（需先装 Ollama 并 pull 模型，详见 week8/README.md）
 cd week8
 python assistant_v1.py                  # 三问三答演示（默认本地引擎 + RAG）
+
+# W9：手写工具调用循环（含 API 调用，需根目录 .env）
+python week9/tool_agent.py "帮我算一下 35*24 等于多少"
+python week9/trace_demo.py             # 重跑 4 个案例，生成 轨迹记录.json
+
+# W9 加分：smolagents 版（先 pip install "smolagents==1.26.0"）
+python week9/smolagents_demo.py
 
 # W7：RAG 单问单答（先 ollama pull nomic-embed-text）
 cd week7
@@ -50,6 +58,7 @@ python week3/vocab_tool.py
 - W4：`openai`、`python-dotenv`
 - W5–W6：Ollama（Windows 安装包）+ `openai`、`requests`、`python-dotenv`
 - W7–W8：`langchain-community`、`langchain-chroma`、`langchain-ollama`、`langchain-text-splitters`、`chromadb`，以及 `ollama pull nomic-embed-text`（274 MB）
+- W9：`openai`、`python-dotenv`（手写版无额外依赖）；加分选做另需 `smolagents==1.26.0`
 - 完整清单见各周 `requirements.txt`（W8 的在 `week8/requirements.txt`）
 
 ## 约定

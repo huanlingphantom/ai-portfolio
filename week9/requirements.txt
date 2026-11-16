@@ -1,0 +1,6 @@
+# W9 手写工具调用循环只需这两个
+openai>=1.0
+python-dotenv
+
+# 加分选做（smolagents 版）另需；不跑 smolagents_demo.py 可以不装
+smolagents==1.26.0
